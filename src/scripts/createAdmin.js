@@ -4,7 +4,8 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/UserSchema");
 const Profile = require("../models/Profile");
 
-dotenv.config();
+const path = require('path');
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const createAdmin = async () => {
     try {
