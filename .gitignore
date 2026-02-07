@@ -1,0 +1,9 @@
+# Dependency folder (huge and unnecessary to upload)
+node_modules/
+
+# Environment variables (contains your DB password and JWT secrets!)
+.env
+
+# Logs and Debug files
+npm-debug.log*
+yarn-error.log*
