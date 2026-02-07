@@ -29,7 +29,7 @@ jobs:
     needs: test
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: docker
+    environment: DOCKER
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
     needs: test
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: azure
+    environment: Asure_CR
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
