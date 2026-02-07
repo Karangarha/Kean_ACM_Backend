@@ -29,6 +29,7 @@ jobs:
     needs: test # This prevents building if tests fail
     if: github.event_name == 'push' # Only push on actual commits to main
     runs-on: ubuntu-latest
+    environment: DOCKER
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
