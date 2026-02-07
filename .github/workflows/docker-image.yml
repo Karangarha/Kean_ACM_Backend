@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -16,8 +16,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install Dependencies
         run: npm install
@@ -25,27 +25,51 @@ jobs:
       - name: Run Jest Tests
         run: npm test -- --ci --coverage
 
-  build-and-push:
-    needs: test # This prevents building if tests fail
-    if: github.event_name == 'push' # Only push on actual commits to main
+  push-to-dockerhub:
+    needs: test
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: DOCKER
+    environment: docker
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub # Or Azure Container Registry
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker Image
+      - name: Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          # Tags the image with 'latest' and the specific Git commit hash
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/my-api:latest
-            ${{ secrets.DOCKER_USERNAME }}/my-api:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/kean-acm-backend:latest
+            ${{ secrets.DOCKER_USERNAME }}/kean-acm-backend:${{ github.sha }}
+
+  push-to-azure:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: azure
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and Push to Azure
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/kean-acm-backend:latest
+            ${{ secrets.ACR_LOGIN_SERVER }}/kean-acm-backend:${{ github.sha }}
