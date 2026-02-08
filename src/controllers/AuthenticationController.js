@@ -20,7 +20,7 @@ const sendTokenResponse = (user, statusCode, res) => {
             Date.now() + 1 * 24 * 60 * 60 * 1000 // 1 day
         ),
         httpOnly: true,
-        // secure: true // Enable in production (requires HTTPS)
+        secure: process.env.NODE_ENV === 'production' // Enable in production (requires HTTPS)
     };
 
     res
@@ -98,20 +98,25 @@ const setupPassword = async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-    // Check for user email
-    const user = await User.findOne({ email });
+        // Check for user email
+        const user = await User.findOne({ email });
 
-    // Check if user has a password set
-    if (!user || !user.password) {
-        return res.status(400).json({ message: "Invalid credentials or account not active" });
-    }
+        // Check if user has a password set
+        if (!user || !user.password) {
+            return res.status(400).json({ message: "Invalid credentials or account not active" });
+        }
 
-    if (await bcrypt.compare(password, user.password)) {
-        sendTokenResponse(user, 200, res);
-    } else {
-        res.status(400).json({ message: "Invalid credentials" });
+        if (await bcrypt.compare(password, user.password)) {
+            sendTokenResponse(user, 200, res);
+        } else {
+            res.status(400).json({ message: "Invalid credentials" });
+        }
+    } catch (error) {
+        console.error("Login Error:", error);
+        res.status(500).json({ message: "Server Error during login" });
     }
 };
 
