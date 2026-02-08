@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kean-acm-backend
+  labels:
+    app: kean-acm-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kean-acm-backend
+  template:
+    metadata:
+      labels:
+        app: kean-acm-backend
+    spec:
+      containers:
+        - name: kean-acm-backend
+          # REPLACE WITH YOUR ACTUAL IMAGE: e.g. your-dockerhub-username/kean-acm-backend:latest
+          image: kar4npr33ts1ngh/kean-acm-backend:latest
+          imagePullPolicy: IfNotPresent # Useful for local development
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - secretRef:
+                name: backend-secrets
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
