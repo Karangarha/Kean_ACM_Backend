@@ -44,7 +44,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 SMTP_EMAIL=your_email@gmail.com
 SMTP_PASSWORD=your_app_specific_password
 FROM_EMAIL=your_email@gmail.com
-FROM_NAME="Kean ACM"
+FROM_NAME=your_name
 ```
 
 ## 📦 Installation
