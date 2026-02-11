@@ -22,7 +22,8 @@ const sendTokenResponse = (user, statusCode, res) => {
             Date.now() + 1 * 24 * 60 * 60 * 1000 // 1 day
         ),
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production' // Enable in production (requires HTTPS)
+        secure: process.env.NODE_ENV === 'production', // Enable in production (requires HTTPS)
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Allow cross-site in production
     };
 
     res
@@ -128,7 +129,9 @@ const loginUser = async (req, res) => {
 const logoutUser = async (req, res) => {
     res.cookie('token', 'none', {
         expires: new Date(Date.now() + 10 * 1000),
-        httpOnly: true
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     });
 
     res.status(200).json({ success: true, data: {} });
