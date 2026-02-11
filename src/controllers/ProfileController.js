@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Member = require("../models/Profile");
 
 // @desc    Get all profiles
@@ -17,6 +18,12 @@ const getProfiles = async (req, res) => {
 // @access  Public
 const getProfileById = async (req, res) => {
     try {
+
+
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(404).json({ message: "Invalid Profile ID format" });
+        }
+
         const profile = await Member.findById(req.params.id);
         if (profile) {
             res.json(profile);
@@ -33,6 +40,12 @@ const getProfileById = async (req, res) => {
 // @access  Private (Owner only)
 const updateProfile = async (req, res) => {
     try {
+
+
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(404).json({ message: "Invalid Profile ID format" });
+        }
+
         const profile = await Member.findById(req.params.id);
 
         if (!profile) {
@@ -42,17 +55,28 @@ const updateProfile = async (req, res) => {
         // Check if user is authorized to edit this profile
         // req.user is set by protect middleware
         // Helper: compare object IDs. 
-        if (req.user.memberId._id.toString() !== profile._id.toString()) {
+        const isOwner = req.user.memberId._id.toString() === profile._id.toString();
+        const isWebDev = req.user.memberId.position === "Web Developer";
+
+        if (!isOwner && !isWebDev) {
             return res.status(401).json({ message: "Not authorized to edit this profile" });
         }
 
         // Update fields
-        const { name, position, memberType, image, link, about } = req.body;
+        const { name, position, memberType, link, about } = req.body;
+        // If an image was uploaded, req.file will exist and have a 'path' property from Cloudinary
+        let imageUrl = profile.image;
+        if (req.file) {
+            imageUrl = req.file.path;
+        } else if (req.body.image) {
+            // Allow manual URL update if provided as string (fallback)
+            imageUrl = req.body.image;
+        }
 
         profile.name = name || profile.name;
         profile.position = position || profile.position;
-        if (memberType) profile.Member = memberType; // Caution: Should members be allowed to change their role? Plan says "Member can only edit THERE profile". Usually role change starts from admin, but user req didn't specify admin. I'll allow it for now or maybe restrict? The prompt says "only executive member can edit events", "member can only edit their profile". It acts like simple editing.
-        profile.image = image || profile.image;
+        if (memberType) profile.Member = memberType;
+        profile.image = imageUrl;
         profile.link = link || profile.link;
         profile.about = about || profile.about;
 

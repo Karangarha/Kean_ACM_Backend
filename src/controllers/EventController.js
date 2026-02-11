@@ -50,6 +50,7 @@ const createEvent = async (req, res) => {
         await event.save();
         res.status(201).json(event);
     } catch (error) {
+        console.error("Error creating event:", error);
         res.status(400).json({ message: error.message });
     }
 };

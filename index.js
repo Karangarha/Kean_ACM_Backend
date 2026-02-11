@@ -6,7 +6,7 @@ const connectDB = require("./src/config/db");
 const EventRoutes = require("./src/routes/eventRoutes");
 const AuthRoutes = require("./src/routes/AuthRoutes");
 const ProfileRoutes = require("./src/routes/ProfileRoutes");
-
+const uploadRoutes = require("./src/routes/uploadRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -17,7 +17,10 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: true, // Auto-reflect origin
+    credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -33,17 +36,26 @@ const limiter = rateLimit({
 });
 
 app.use("/api/auth", limiter);
+app.use("/api/upload", limiter);
 
 // Database connection
-connectDB();
+// Database connection
+if (require.main === module) {
+    connectDB();
+}
 
 // Routes
-app.use("/events", EventRoutes);
+app.use("/api/events", EventRoutes);
 app.use("/api/auth", AuthRoutes);
 app.use("/api/profiles", ProfileRoutes);
+app.use("/api/upload", uploadRoutes);
 app.use("/api/invites", require("./src/routes/inviteRoutes"));
 
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;

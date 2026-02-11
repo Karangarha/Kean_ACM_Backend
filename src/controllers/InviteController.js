@@ -55,6 +55,40 @@ const createInvite = async (req, res) => {
     }
 };
 
+// @desc    Get all invites
+// @route   GET /api/invites
+// @access  Private (Executive Board)
+const getInvites = async (req, res) => {
+    try {
+        const invites = await Invite.find({});
+        res.json(invites);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+// @desc    Delete invite
+// @route   DELETE /api/invites/:id
+// @access  Private (Executive Board)
+const deleteInvite = async (req, res) => {
+    try {
+        const invite = await Invite.findById(req.params.id);
+
+        if (!invite) {
+            return res.status(404).json({ message: "Invite not found" });
+        }
+
+        await invite.deleteOne();
+        res.json({ message: "Invite removed" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
 module.exports = {
-    createInvite
+    createInvite,
+    getInvites,
+    deleteInvite
 };

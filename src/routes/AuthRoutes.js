@@ -4,14 +4,18 @@ const {
     setupPassword,
     loginUser,
     logoutUser,
-    getMe
+    getMe,
+    forgotPassword,
+    resetPassword
 } = require("../controllers/AuthenticationController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 // Public
 router.put("/setup-password", setupPassword);
-router.get("/login", loginUser);
+router.post("/login", loginUser); // Fixed to POST
 router.get("/logout", logoutUser);
+router.post("/forgotpassword", forgotPassword);
+router.put("/resetpassword/:resettoken", resetPassword);
 
 // Protected
 router.get("/me", protect, getMe);
