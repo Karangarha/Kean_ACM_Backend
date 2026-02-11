@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const Invite = require("../models/InviteSchema");
 const User = require("../models/UserSchema");
+const sendEmail = require("../utils/sendEmail");
 
 // @desc    Create a new invite
 // @route   POST /api/invites
@@ -39,16 +40,31 @@ const createInvite = async (req, res) => {
             expiresAt
         });
 
-        // In a real app, send email here. For now, return the token/link.
-        const inviteLink = `${req.protocol}://${req.get("host")}/api/auth/setup-password?token=${token}`;
+        // Use the origin of the request (frontend) as the base URL if available, otherwise fall back to env or localhost
+        const frontendUrl = req.headers.origin || process.env.FRONTEND_URL || 'http://localhost:5173';
+        const inviteLink = `${frontendUrl}/register?token=${token}`;
 
-        res.status(201).json({
-            success: true,
-            message: "Invite created successfully",
-            token,
-            inviteLink,
-            data: invite
-        });
+        const message = `You have been invited to join the Kean ACM Executive Board/General Members. Please click the link below to activate your account and set your password:\n\n${inviteLink}\n\nThis link will expire in 24 hours.`;
+
+        try {
+            await sendEmail({
+                email: invite.email,
+                subject: 'Kean ACM Invitation',
+                message
+            });
+
+            res.status(201).json({
+                success: true,
+                message: "Invite sent successfully",
+                token,
+                inviteLink,
+                data: invite
+            });
+        } catch (error) {
+            await invite.deleteOne(); // Cleanup if email fails
+            console.error(error);
+            return res.status(500).json({ message: "Email could not be sent. Invite not created." });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error: " + error.message });
